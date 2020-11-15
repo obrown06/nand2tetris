@@ -11,10 +11,20 @@
  * else                    out[t+1] = out[t]
  */
 
+ /**
+  * Multiplexor:
+  * out = a if sel == 0
+  *       b otherwise
+  */
+
 CHIP PC {
     IN in[16],load,inc,reset;
     OUT out[16];
 
     PARTS:
-    // Put your code here:
+    Inc16(in=prevout, out=incVal);
+    Mux16(a=prevout, b=incVal, sel=inc, out=prevOrInc);
+    Mux16(a=prevOrInc, b=in, sel=load, out=prevOrIncOrIn);
+    Mux16(a=prevOrIncOrIn, b=false, sel=reset, out=muxout);
+    Register(in=muxout, load=true, out=out, out=prevout);
 }
