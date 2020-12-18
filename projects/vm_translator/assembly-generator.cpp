@@ -18,22 +18,28 @@ namespace {
   const std::string kDecrementMRegisterComp = "M-1";
   const std::string kIncrementMRegisterComp = "M+1";
   const std::string kIncrementARegisterComp = "A+1";
+  const std::string kIncrementDRegisterComp = "D+1";
   const std::string kAPlusDComputation = "A+D";
+  const std::string kDMinusAComp = "D-A";
+  const std::string kMMinusAComp = "M-A";
   const std::string kFalseComp = "0";
-  const std::string kTrueComp = "1";
+  const std::string kTrueComp = "-1";
   const std::string kUnconditionalJumpComp = "0";
   const std::string kUnconditionalJumpJump = "JMP";
+  const std::string kNEJump = "JNE";
+  const std::string kSystemInitMethod = "Sys.init";
+  const size_t kStackPointerInit = 256;
 
   const std::map<VMInstruction::VMInstructionType, std::string> kOperationTypesToComputations {
     { VMInstruction::VMInstructionType::ADD, "M+D" },
-    { VMInstruction::VMInstructionType::SUB, "D-M" },
+    { VMInstruction::VMInstructionType::SUB, "M-D" },
     { VMInstruction::VMInstructionType::NEG, "-D" },
     { VMInstruction::VMInstructionType::AND, "D&M" },
     { VMInstruction::VMInstructionType::OR, "D|M" },
     { VMInstruction::VMInstructionType::NOT, "!D" },
-    { VMInstruction::VMInstructionType::EQ, "D-M" },
-    { VMInstruction::VMInstructionType::GT, "D-M" },
-    { VMInstruction::VMInstructionType::LT, "D-M" }
+    { VMInstruction::VMInstructionType::EQ, "M-D" },
+    { VMInstruction::VMInstructionType::GT, "M-D" },
+    { VMInstruction::VMInstructionType::LT, "M-D" }
   };
 
   const std::map<VMInstruction::VMInstructionType, std::string> kLogicalOperationTypesToJmps {
@@ -69,10 +75,8 @@ namespace {
   };
 
   const std::set<VMInstruction::MemorySegmentType> kIndirectMemorySegmentAddrs {
-    VMInstruction::MemorySegmentType::LOCAL,
-    VMInstruction::MemorySegmentType::ARGUMENT,
-    VMInstruction::MemorySegmentType::THIS,
-    VMInstruction::MemorySegmentType::THAT
+    VMInstruction::MemorySegmentType::POINTER,
+    VMInstruction::MemorySegmentType::TEMP
   };
 
   AssemblyInstructionSet
@@ -100,48 +104,167 @@ namespace {
                  /*dest=*/kMRegister));
     return instructions;
   }
+
+  AssemblyInstructionSet
+  GetPushDRegisterToStackInstructionSet() {
+    AssemblyInstructionSet assembly;
+    PushBackAll(GetLoadStackPointerToARegisterInstructionSet(), &assembly);
+    assembly.push_back(
+     std::make_shared<CInstruction>(
+      /*comp=*/kDRegister,
+      /*dest=*/kMRegister)
+    );
+    PushBackAll(GetIncrementStackInstructionSet(), &assembly);
+    return assembly;
+  }
+
+  AssemblyInstructionSet
+  GetPushMRegisterToStackInstructionSet() {
+    AssemblyInstructionSet assembly;
+    assembly.push_back(
+     std::make_shared<CInstruction>(
+      /*comp=*/kMRegister,
+      /*dest=*/kDRegister)
+    );
+    PushBackAll(GetPushDRegisterToStackInstructionSet(), &assembly);
+    return assembly;
+  }
+
+  AssemblyInstructionSet
+  GetPushSegmentPointerToStack(VMInstruction::MemorySegmentType segment_type) {
+    AssemblyInstructionSet assembly;
+    assembly.push_back(
+      std::make_shared<AInstruction>(kMemorySegmentTypesToRAMAddrs.at(segment_type))
+    );
+    PushBackAll(GetPushMRegisterToStackInstructionSet(), &assembly);
+    return assembly;
+  }
+}
+
+void AssemblyGenerator::GenerateInitAssembly() {
+  // Set SP = 256
+  instructions_.push_back(std::make_shared<AInstruction>(std::to_string(kStackPointerInit)));
+  instructions_.push_back(std::make_shared<CInstruction>(
+    /*comp=*/kARegister, /*dest=*/kDRegister));
+  instructions_.push_back(std::make_shared<AInstruction>(kStackPointerRAMLocation));
+  instructions_.push_back(std::make_shared<CInstruction>(
+    /*comp=*/kDRegister, /*dest=*/kMRegister));
+
+  // Call Sys.init
+  PushBackAll(GenerateCallInstructionSet(kSystemInitMethod, /*n_args=*/0), &instructions_);
 }
 
 void
-AssemblyGenerator::TranslateAndStoreAssemblyFor(const VMInstruction& instruction) {
+AssemblyGenerator::GenerateAssemblyFor(const VMInstruction& instruction) {
+  AssemblyInstructionSet assembly;
   VMInstruction::VMInstructionType instruction_type = instruction.GetInstructionType();
-  auto generated =
-    (kArithmeticOperationTypes.find(instruction_type)
-      != kArithmeticOperationTypes.end())
-    ? GenerateArithmeticInstructionSet(instruction_type) :
-      GenerateMemAccessInstructionSet(instruction_type,
-                                      *instruction.GetMemorySegmentType(),
-                                      *instruction.GetMemorySegmentAddress());
-  return PushBackAll(generated, &instructions_);
+  switch (instruction_type) {
+    case VMInstruction::VMInstructionType::ADD:
+    case VMInstruction::VMInstructionType::SUB:
+    case VMInstruction::VMInstructionType::NEG:
+    case VMInstruction::VMInstructionType::AND:
+    case VMInstruction::VMInstructionType::OR:
+    case VMInstruction::VMInstructionType::NOT:
+    case VMInstruction::VMInstructionType::EQ:
+    case VMInstruction::VMInstructionType::GT:
+    case VMInstruction::VMInstructionType::LT:
+      assembly = GenerateArithmeticInstructionSet(instruction_type);
+      break;
+    case VMInstruction::VMInstructionType::PUSH:
+      assembly = GeneratePushMemAccessInstructionSet(
+        *instruction.GetMemorySegmentType(),
+        *instruction.GetMemorySegmentAddress());
+      break;
+    case VMInstruction::VMInstructionType::POP:
+      assembly = GeneratePopMemAccessInstructionSet(
+        *instruction.GetMemorySegmentType(),
+        *instruction.GetMemorySegmentAddress());
+      break;
+    case VMInstruction::VMInstructionType::LABEL:
+      assembly = GenerateLabelInstructionSet(*instruction.GetLabel());
+      break;
+    case VMInstruction::VMInstructionType::GOTO:
+      assembly = GenerateGotoInstructionSet(*instruction.GetLabel());
+      break;
+    case VMInstruction::VMInstructionType::IFGOTO:
+      assembly = GenerateIfGotoInstructionSet(*instruction.GetLabel());
+      break;
+    case VMInstruction::VMInstructionType::CALL:
+      assembly = GenerateCallInstructionSet(
+        *instruction.GetFunctionName(),
+        *instruction.GetNArgs());
+      break;
+    case VMInstruction::VMInstructionType::FUNCTION:
+      assembly = GenerateFunctionInstructionSet(
+        *instruction.GetFunctionName(),
+        *instruction.GetNVars());
+      break;
+    case VMInstruction::VMInstructionType::RETURN:
+      assembly = GenerateReturnInstructionSet();
+      break;
+  }
+  return PushBackAll(assembly, &instructions_);
 }
 
 std::string
-AssemblyGenerator::MakeStaticSymbol(size_t seed) {
+AssemblyGenerator::MakeStaticSymbol(size_t seed) const {
   std::stringstream symbol;
-  symbol << program_name_ << "." << std::to_string(seed);
+  symbol << module_name_ << "." << std::to_string(seed);
   return symbol.str();
 }
 
 AssemblyInstructionSet
-AssemblyGenerator::GenerateMemAccessInstructionSet(
-  VMInstruction::VMInstructionType instruction_type,
-  VMInstruction::MemorySegmentType memory_segment_type,
-  size_t memory_segment_address) {
-  if (instruction_type == VMInstruction::VMInstructionType::PUSH) {
-    return GeneratePushMemAccessInstructionSet(
-      memory_segment_type,
-      memory_segment_address);
-  } else {
-    return GeneratePopMemAccessInstructionSet(
-      memory_segment_type,
-      memory_segment_address);
-  }
+AssemblyGenerator::GenerateLabelInstructionSet(const std::string& label) const {
+  AssemblyInstructionSet assembly;
+  assembly.push_back(
+   std::make_shared<LabelInstruction>(label)
+  );
+  return assembly;
+}
+
+AssemblyInstructionSet
+AssemblyGenerator::GenerateGotoInstructionSet(const std::string& label) const {
+  AssemblyInstructionSet assembly;
+  LabelInstruction label_instruction(label);
+  assembly.push_back(
+   std::make_shared<AInstruction>(label_instruction.GetSymbol())
+  );
+  assembly.push_back(
+   std::make_shared<CInstruction>(
+     /*comp=*/kUnconditionalJumpComp,
+     /*dest=*/boost::none,
+     /*jump=*/kUnconditionalJumpJump)
+  );
+  return assembly;
+}
+
+AssemblyInstructionSet
+AssemblyGenerator::GenerateIfGotoInstructionSet(const std::string& label) const {
+  AssemblyInstructionSet assembly;
+  PushBackAll(GetDecrementStackInstructionSet(), &assembly);
+  PushBackAll(GetLoadStackPointerToARegisterInstructionSet(), &assembly);
+  assembly.push_back(
+   std::make_shared<CInstruction>(
+     /*comp=*/kMRegister,
+     /*dest=*/kDRegister)
+  );
+  LabelInstruction label_instruction(label);
+  assembly.push_back(
+   std::make_shared<AInstruction>(label_instruction.GetSymbol())
+  );
+  assembly.push_back(
+   std::make_shared<CInstruction>(
+     /*comp=*/kDRegister,
+     /*dest=*/boost::none,
+     /*jump=*/kNEJump)
+  );
+  return assembly;
 }
 
 AssemblyInstructionSet
 AssemblyGenerator::GetLoadMemorySegmentAddressToARegisterInstructionSet(
   VMInstruction::MemorySegmentType memory_segment_type,
-  size_t memory_segment_address) {
+  size_t memory_segment_address) const {
   AssemblyInstructionSet assembly;
   if (memory_segment_type == VMInstruction::MemorySegmentType::STATIC) {
     assembly.push_back(
@@ -152,20 +275,19 @@ AssemblyGenerator::GetLoadMemorySegmentAddressToARegisterInstructionSet(
       std::make_shared<AInstruction>(
         kMemorySegmentTypesToRAMAddrs.at(memory_segment_type)));
 
-    if (kIndirectMemorySegmentAddrs.find(memory_segment_type)
-        != kIndirectMemorySegmentAddrs.end()) {
+    if (kIndirectMemorySegmentAddrs.find(memory_segment_type) != kIndirectMemorySegmentAddrs.end()) {
+      assembly.push_back(
+       std::make_shared<CInstruction>(
+         /*comp=*/kARegister,
+         /*dest=*/kDRegister)
+       );
+    } else {
       assembly.push_back(
        std::make_shared<CInstruction>(
          /*comp=*/kMRegister,
-         /*dest=*/kARegister)
+         /*dest=*/kDRegister)
        );
     }
-
-    assembly.push_back(
-     std::make_shared<CInstruction>(
-       /*comp=*/kMRegister,
-       /*dest=*/kDRegister)
-     );
 
     assembly.push_back(
       std::make_shared<AInstruction>(std::to_string(memory_segment_address))
@@ -184,7 +306,7 @@ AssemblyInstructionSet
 AssemblyGenerator::GeneratePushMemAccessInstructionSet(
   VMInstruction::MemorySegmentType memory_segment_type,
   size_t memory_segment_address
-) {
+) const {
   AssemblyInstructionSet assembly;
 
   if (memory_segment_type == VMInstruction::MemorySegmentType::CONSTANT) {
@@ -207,20 +329,14 @@ AssemblyGenerator::GeneratePushMemAccessInstructionSet(
       /*dest=*/kDRegister)
     );
   }
-  PushBackAll(GetLoadStackPointerToARegisterInstructionSet(), &assembly);
-  assembly.push_back(
-   std::make_shared<CInstruction>(
-    /*comp=*/kDRegister,
-    /*dest=*/kMRegister)
-  );
-  PushBackAll(GetIncrementStackInstructionSet(), &assembly);
+  PushBackAll(GetPushDRegisterToStackInstructionSet(), &assembly);
   return assembly;
 }
 
 AssemblyInstructionSet
 AssemblyGenerator::GeneratePopMemAccessInstructionSet(
   VMInstruction::MemorySegmentType memory_segment_type,
-  size_t memory_segment_address)
+  size_t memory_segment_address) const
 {
   AssemblyInstructionSet assembly;
   PushBackAll(
@@ -266,6 +382,176 @@ AssemblyGenerator::GeneratePopMemAccessInstructionSet(
 std::shared_ptr<LabelInstruction>
 AssemblyGenerator::MakeNextLabelInstructionAndIncrementSeed() {
   return std::make_shared<LabelInstruction>(next_label_seed_++);
+}
+
+AssemblyInstructionSet
+AssemblyGenerator::GenerateReturnInstructionSet() const {
+  AssemblyInstructionSet assembly;
+
+  // Store endFrame in TEMP[3]
+  assembly.push_back(
+    std::make_shared<AInstruction>(kMemorySegmentTypesToRAMAddrs.at(
+        VMInstruction::MemorySegmentType::LOCAL)));
+  assembly.push_back(
+    std::make_shared<CInstruction>(/*comp=*/kMRegister, /*dest=*/kDRegister));
+  assembly.push_back(
+    std::make_shared<AInstruction>(kMemorySegmentTypesToRAMAddrs.at(
+        VMInstruction::MemorySegmentType::TEMP)));
+  for (int i = 0; i < 3; i++) {
+    assembly.push_back(
+      std::make_shared<CInstruction>(
+        /*comp=*/kIncrementARegisterComp, /*dest=*/kARegister));
+  }
+  assembly.push_back(
+    std::make_shared<CInstruction>(/*comp=*/kDRegister, /*dest=*/kMRegister));
+
+  // Store retAddr in TEMP[4]
+  assembly.push_back(
+    std::make_shared<AInstruction>(std::to_string(5)));
+  assembly.push_back(std::make_shared<CInstruction>(
+    /*comp=*/kDMinusAComp, /*dest=*/kARegister));
+  assembly.push_back(std::make_shared<CInstruction>(
+    /*comp=*/kMRegister, /*dest=*/kDRegister));
+  assembly.push_back(
+    std::make_shared<AInstruction>(kMemorySegmentTypesToRAMAddrs.at(
+        VMInstruction::MemorySegmentType::TEMP)));
+  for (int i = 0; i < 4; i++) {
+    assembly.push_back(
+      std::make_shared<CInstruction>(
+        /*comp=*/kIncrementARegisterComp, /*dest=*/kARegister));
+  }
+  assembly.push_back(
+    std::make_shared<CInstruction>(
+      /*comp=*/kDRegister, /*dest=*/kMRegister));
+
+  // *ARG = pop()
+  PushBackAll(GeneratePopMemAccessInstructionSet(
+    VMInstruction::MemorySegmentType::ARGUMENT,
+    /*memory_segment_address=*/0), &assembly);
+
+  // SP = ARG + 1
+  assembly.push_back(
+    std::make_shared<AInstruction>(kMemorySegmentTypesToRAMAddrs.at(
+        VMInstruction::MemorySegmentType::ARGUMENT)));
+  assembly.push_back(std::make_shared<CInstruction>(
+    /*comp=*/kMRegister, /*dest=*/kDRegister));
+  assembly.push_back(std::make_shared<AInstruction>(kStackPointerRAMLocation));
+  assembly.push_back(std::make_shared<CInstruction>(
+    /*comp=*/kIncrementDRegisterComp, /*dest=*/kMRegister));
+
+  // Restore values of THAT, THIS, ARGUMENT, and LOCAL
+  auto transfer_from_temp = [this, &assembly](size_t offset, VMInstruction::MemorySegmentType to) {
+    PushBackAll(GetLoadMemorySegmentAddressToARegisterInstructionSet(
+        VMInstruction::MemorySegmentType::TEMP, 3), &assembly);
+    assembly.push_back(std::make_shared<CInstruction>(/*comp=*/kMRegister,
+                                                      /*dest=*/kDRegister));
+    assembly.push_back(std::make_shared<AInstruction>(std::to_string(offset)));
+    assembly.push_back(std::make_shared<CInstruction>(
+      /*comp=*/kDMinusAComp, /*dest=*/kARegister));
+    assembly.push_back(std::make_shared<CInstruction>(
+      /*comp=*/kMRegister, /*dest=*/kDRegister));
+    assembly.push_back(std::make_shared<AInstruction>(
+      kMemorySegmentTypesToRAMAddrs.at(to)));
+    assembly.push_back(std::make_shared<CInstruction>(
+      /*comp=*/kDRegister, /*dest=*/kMRegister));
+  };
+
+  transfer_from_temp(1, VMInstruction::MemorySegmentType::THAT);
+  transfer_from_temp(2, VMInstruction::MemorySegmentType::THIS);
+  transfer_from_temp(3, VMInstruction::MemorySegmentType::ARGUMENT);
+  transfer_from_temp(4, VMInstruction::MemorySegmentType::LOCAL);
+
+  // goto return address
+  PushBackAll(GetLoadMemorySegmentAddressToARegisterInstructionSet(
+      VMInstruction::MemorySegmentType::TEMP, 4), &assembly);
+  assembly.push_back(std::make_shared<CInstruction>(
+    /*comp=*/kMRegister, /*dest=*/kARegister));
+  assembly.push_back(std::make_shared<CInstruction>(
+    /*comp=*/kUnconditionalJumpComp, /*dest=*/boost::none,
+    /*jump=*/kUnconditionalJumpJump));
+  return assembly;
+}
+
+AssemblyInstructionSet
+AssemblyGenerator::GenerateFunctionInstructionSet(
+  const std::string& function_name, size_t n_vars) const {
+  AssemblyInstructionSet assembly;
+  assembly.push_back(
+    std::make_shared<LabelInstruction>(function_name));
+
+  for (size_t i = 0; i < n_vars; i++) {
+    assembly.push_back(
+      std::make_shared<AInstruction>(std::to_string(0)));
+    assembly.push_back(
+      std::make_shared<CInstruction>(/*comp=*/kARegister, /*dest=*/kDRegister));
+    PushBackAll(GetPushDRegisterToStackInstructionSet(), &assembly);
+  }
+  return assembly;
+}
+
+AssemblyInstructionSet
+AssemblyGenerator::GenerateCallInstructionSet(
+  const std::string& function_name, size_t n_args) {
+  AssemblyInstructionSet assembly;
+
+  // Push return address
+  auto return_address_label = MakeNextLabelInstructionAndIncrementSeed();
+  assembly.push_back(std::make_shared<AInstruction>(return_address_label->GetSymbol()));
+  assembly.push_back(std::make_shared<CInstruction>(
+                      /*comp=*/kARegister,
+                      /*dest=*/kDRegister));
+  PushBackAll(GetPushDRegisterToStackInstructionSet(), &assembly);
+
+  // Push Segment pointers
+  PushBackAll(GetPushSegmentPointerToStack(VMInstruction::MemorySegmentType::LOCAL), &assembly);
+  PushBackAll(GetPushSegmentPointerToStack(VMInstruction::MemorySegmentType::ARGUMENT), &assembly);
+  PushBackAll(GetPushSegmentPointerToStack(VMInstruction::MemorySegmentType::THIS), &assembly);
+  PushBackAll(GetPushSegmentPointerToStack(VMInstruction::MemorySegmentType::THAT), &assembly);
+
+  // Set ARG = SP - 5 - nArgs
+  PushBackAll(GetLoadStackPointerToARegisterInstructionSet(), &assembly);
+  assembly.push_back(std::make_shared<CInstruction>(
+                      /*comp=*/kARegister,
+                      /*dest=*/kDRegister));
+
+  assembly.push_back(
+    std::make_shared<AInstruction>(std::to_string(5)));
+  assembly.push_back(std::make_shared<CInstruction>(
+                      /*comp=*/kDMinusAComp,
+                      /*dest=*/kDRegister));
+
+  assembly.push_back(
+    std::make_shared<AInstruction>(std::to_string(n_args)));
+  assembly.push_back(std::make_shared<CInstruction>(
+                      /*comp=*/kDMinusAComp,
+                      /*dest=*/kDRegister));
+
+  assembly.push_back(
+    std::make_shared<AInstruction>(
+      kMemorySegmentTypesToRAMAddrs.at(
+        VMInstruction::MemorySegmentType::ARGUMENT)));
+  assembly.push_back(std::make_shared<CInstruction>(
+                      /*comp=*/kDRegister,
+                      /*dest=*/kMRegister));
+
+  // Set LCL = SP
+  PushBackAll(GetLoadStackPointerToARegisterInstructionSet(), &assembly);
+  assembly.push_back(std::make_shared<CInstruction>(
+                      /*comp=*/kARegister,
+                      /*dest=*/kDRegister));
+  assembly.push_back(std::make_shared<AInstruction>(
+    kMemorySegmentTypesToRAMAddrs.at(
+        VMInstruction::MemorySegmentType::LOCAL)));
+  assembly.push_back(std::make_shared<CInstruction>(
+                      /*comp=*/kDRegister,
+                      /*dest=*/kMRegister));
+
+  // goto function_name
+  PushBackAll(GenerateGotoInstructionSet(function_name), &assembly);
+
+  // Finally, insert the return_address label into the assembly
+  assembly.push_back(return_address_label);
+  return assembly;
 }
 
 AssemblyInstructionSet
@@ -334,13 +620,7 @@ AssemblyGenerator::GenerateArithmeticInstructionSet(
       /*comp=*/kFalseComp,
       /*dest=*/kMRegister)
     );
-  assembly.push_back(std::make_shared<AInstruction>(end_label->GetSymbol()));
-  assembly.push_back(
-    std::make_shared<CInstruction>(
-      /*comp=*/kUnconditionalJumpComp,
-      /*dest=*/boost::none,
-      /*jump=*/kUnconditionalJumpJump
-    ));
+  PushBackAll(GenerateGotoInstructionSet(end_label->GetSymbol()), &assembly);
 
   // TRUE case
   assembly.push_back(true_label);

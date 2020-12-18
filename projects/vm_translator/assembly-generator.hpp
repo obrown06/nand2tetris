@@ -27,8 +27,7 @@ typedef std::vector<std::shared_ptr<BaseAssemblyInstruction> > AssemblyInstructi
 //     = generator.GetCurrentInstructionSet();   // Contains ADD, SUBTRACT
 class AssemblyGenerator {
  public:
-  AssemblyGenerator(const std::string& program_name)
-    : program_name_(program_name) {}
+  AssemblyGenerator() {}
 
   // Returns a copy of the current set of assembly
   // instructions stored by the class.
@@ -36,45 +35,63 @@ class AssemblyGenerator {
 
   // Translates the provided VMInstruction to assembly
   // and stores the generated instructions.
-  void TranslateAndStoreAssemblyFor(const VMInstruction& vm_instruction);
+  void GenerateAssemblyFor(const VMInstruction& vm_instruction);
 
- protected:
+  void ResetModuleName(const std::string& module_name) {
+    module_name_ = module_name;
+  }
 
-  std::string
-  MakeStaticSymbol(size_t seed);
+  void GenerateInitAssembly();
 
+ private:
   AssemblyInstructionSet
   GenerateArithmeticInstructionSet(
     VMInstruction::VMInstructionType instruction_type);
 
   AssemblyInstructionSet
-  GenerateMemAccessInstructionSet(
-    VMInstruction::VMInstructionType instruction_type,
-    VMInstruction::MemorySegmentType memory_segment_type,
-    size_t memory_segment_address);
-
-  AssemblyInstructionSet
-  GeneratePopMemAccessInstructionSet(
-    VMInstruction::MemorySegmentType memory_segment_type,
-    size_t memory_segment_address);
-
-  AssemblyInstructionSet
-  GeneratePushMemAccessInstructionSet(
-    VMInstruction::MemorySegmentType memory_segment_type,
-    size_t memory_segment_address);
-
-  AssemblyInstructionSet
-  GetLoadMemorySegmentAddressToARegisterInstructionSet(
-    VMInstruction::MemorySegmentType memory_segment_type,
-    size_t memory_segment_address);
+  GenerateCallInstructionSet(
+    const std::string& function_name, size_t n_args);
 
   std::shared_ptr<LabelInstruction>
   MakeNextLabelInstructionAndIncrementSeed();
 
- private:
+  AssemblyInstructionSet
+  GenerateFunctionInstructionSet(
+    const std::string& function_name, size_t n_vars) const;
+
+  AssemblyInstructionSet
+  GenerateReturnInstructionSet() const;
+
+  std::string
+  MakeStaticSymbol(size_t seed) const;
+
+  AssemblyInstructionSet
+  GenerateLabelInstructionSet(const std::string& label) const;
+
+  AssemblyInstructionSet
+  GenerateGotoInstructionSet(const std::string& label) const;
+
+  AssemblyInstructionSet
+  GenerateIfGotoInstructionSet(const std::string& label) const;
+
+  AssemblyInstructionSet
+  GeneratePopMemAccessInstructionSet(
+    VMInstruction::MemorySegmentType memory_segment_type,
+    size_t memory_segment_address) const;
+
+  AssemblyInstructionSet
+  GeneratePushMemAccessInstructionSet(
+    VMInstruction::MemorySegmentType memory_segment_type,
+    size_t memory_segment_address) const;
+
+  AssemblyInstructionSet
+  GetLoadMemorySegmentAddressToARegisterInstructionSet(
+    VMInstruction::MemorySegmentType memory_segment_type,
+    size_t memory_segment_address) const;
+
   AssemblyInstructionSet instructions_;
   size_t next_label_seed_;
-  std::string program_name_;
+  std::string module_name_;
 };
 
 #endif

@@ -7,11 +7,12 @@
 
 class LabelInstruction : public BaseAssemblyInstruction {
  public:
-   LabelInstruction(size_t seed) : seed_(seed) {}
+   LabelInstruction(size_t seed);
+   LabelInstruction(const std::string& label) : label_(label) {}
    std::string ToString() const override;
    std::string GetSymbol() const;
  private:
-   size_t seed_;
+   std::string label_;
 };
 
 #endif

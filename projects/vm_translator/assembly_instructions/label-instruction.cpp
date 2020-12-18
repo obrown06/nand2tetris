@@ -3,7 +3,13 @@
 #include <sstream>
 
 namespace {
-  constexpr char kLabelPrefix[] = "LABEL";
+  constexpr char kFromSeedPrefix[] = "FROM_SEED_";
+}
+
+LabelInstruction::LabelInstruction(size_t seed) {
+  std::stringstream label;
+  label << kFromSeedPrefix << std::to_string(seed);
+  label_ = label.str();
 }
 
 std::string LabelInstruction::ToString() const {
@@ -13,7 +19,5 @@ std::string LabelInstruction::ToString() const {
 }
 
 std::string LabelInstruction::GetSymbol() const {
-  std::stringstream symbol;
-  symbol << kLabelPrefix << std::to_string(seed_);
-  return symbol.str();
+  return label_;
 }

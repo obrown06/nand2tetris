@@ -13,7 +13,7 @@ namespace {
   constexpr char kNewlineChar = '\n';
   constexpr char kCarriageReturnChar = '\r';
 
-  const std::map<std::string, VMInstruction::VMInstructionType> kStringsToArithmeticInstructionTypes {
+  const std::map<std::string, VMInstruction::VMInstructionType> kStringsToNoArgumentInstructionTypes {
     { "add", VMInstruction::VMInstructionType::ADD },
     { "sub", VMInstruction::VMInstructionType::SUB },
     { "neg", VMInstruction::VMInstructionType::NEG },
@@ -23,11 +23,23 @@ namespace {
     { "and", VMInstruction::VMInstructionType::AND },
     { "or", VMInstruction::VMInstructionType::OR },
     { "not", VMInstruction::VMInstructionType::NOT },
+    { "return", VMInstruction::VMInstructionType::RETURN }
+  };
+
+  const std::map<std::string, VMInstruction::VMInstructionType> kStringsToSingleArgumentInstructionTypes {
+    { "label", VMInstruction::VMInstructionType::LABEL },
+    { "goto", VMInstruction::VMInstructionType::GOTO },
+    { "if-goto", VMInstruction::VMInstructionType::IFGOTO }
   };
 
   const std::map<std::string, VMInstruction::VMInstructionType> kStringsToMemoryInstructionTypes {
     { "push", VMInstruction::VMInstructionType::PUSH },
     { "pop", VMInstruction::VMInstructionType::POP },
+  };
+
+  const std::map<std::string, VMInstruction::VMInstructionType> kStringsToFunctionInstructionTypes {
+    { "function", VMInstruction::VMInstructionType::FUNCTION },
+    { "call", VMInstruction::VMInstructionType::CALL },
   };
 
   const std::map<std::string, VMInstruction::MemorySegmentType> kStringsToMemorySegmentTypes {
@@ -63,18 +75,31 @@ boost::optional<VMInstruction> ParseLine(const std::string& line) {
   auto it = line.begin();
   std::string command = advance_next_word(it);
 
-  if (kStringsToArithmeticInstructionTypes.find(command)
-      != kStringsToArithmeticInstructionTypes.end()) {
-    return VMInstruction(kStringsToArithmeticInstructionTypes.at(command));
+  if (kStringsToNoArgumentInstructionTypes.find(command)
+      != kStringsToNoArgumentInstructionTypes.end()) {
+    return VMInstruction(kStringsToNoArgumentInstructionTypes.at(command));
   }
 
   it++;
-  std::string memory_segment_string = advance_next_word(it);
+  std::string first_arg = advance_next_word(it);
+
+  if (kStringsToSingleArgumentInstructionTypes.find(command)
+      != kStringsToSingleArgumentInstructionTypes.end()) {
+    return VMInstruction(kStringsToSingleArgumentInstructionTypes.at(command),
+                         first_arg);
+  }
 
   it++;
-  std::string memory_segment_address = advance_next_word(it);
-  std::cout << "Created VM instruction for: " << line << std::endl;
-  return VMInstruction(kStringsToMemoryInstructionTypes.at(command),
-                       kStringsToMemorySegmentTypes.at(memory_segment_string),
-                       std::atoi(memory_segment_address.c_str()));
+  std::string second_arg = advance_next_word(it);
+
+  if (kStringsToMemoryInstructionTypes.find(command)
+      != kStringsToMemoryInstructionTypes.end()) {
+    return VMInstruction(kStringsToMemoryInstructionTypes.at(command),
+                         kStringsToMemorySegmentTypes.at(first_arg),
+                         std::atoi(second_arg.c_str()));
+  } else {
+    return VMInstruction(kStringsToFunctionInstructionTypes.at(command),
+                         first_arg,
+                         std::atoi(second_arg.c_str()));
+  }
 }
