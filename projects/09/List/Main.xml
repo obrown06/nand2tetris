@@ -1,0 +1,110 @@
+<class>
+<keyword> class </keyword>
+<identifier> Main </identifier>
+<symbol> { </symbol>
+<subroutineDec>
+<keyword> function </keyword>
+<keyword> void </keyword>
+<identifier> main </identifier>
+<symbol> ( </symbol>
+<parameterList>
+</parameterList>
+<symbol> ) </symbol>
+<subroutineBody>
+<symbol> { </symbol>
+<varDec>
+<keyword> var </keyword>
+<identifier> List </identifier>
+<identifier> v </identifier>
+<symbol> ; </symbol>
+</varDec>
+<statements>
+<LetStatement>
+<keyword> let </keyword>
+<identifier> v </identifier>
+<symbol> = </symbol>
+<expression>
+<identifier> List </identifier>
+<symbol> . </symbol>
+<identifier> new </identifier>
+<symbol> ( </symbol>
+<expressionList>
+<expression>
+<integerConstant> 5 </integerConstant>
+</expression>
+<symbol> , </symbol>
+<expression>
+<keyword> null </keyword>
+</expression>
+</expressionList>
+<symbol> ) </symbol>
+</expression>
+<symbol> ; </symbol>
+</LetStatement>
+<LetStatement>
+<keyword> let </keyword>
+<identifier> v </identifier>
+<symbol> = </symbol>
+<expression>
+<identifier> List </identifier>
+<symbol> . </symbol>
+<identifier> new </identifier>
+<symbol> ( </symbol>
+<expressionList>
+<expression>
+<integerConstant> 2 </integerConstant>
+</expression>
+<symbol> , </symbol>
+<expression>
+<identifier> List </identifier>
+<symbol> . </symbol>
+<identifier> new </identifier>
+<symbol> ( </symbol>
+<expressionList>
+<expression>
+<integerConstant> 3 </integerConstant>
+</expression>
+<symbol> , </symbol>
+<expression>
+<identifier> v </identifier>
+</expression>
+</expressionList>
+<symbol> ) </symbol>
+</expression>
+</expressionList>
+<symbol> ) </symbol>
+</expression>
+<symbol> ; </symbol>
+</LetStatement>
+<doStatement>
+<keyword> do </keyword>
+<identifier> v </identifier>
+<symbol> . </symbol>
+<identifier> print </identifier>
+<symbol> ( </symbol>
+<expressionList>
+</expressionList>
+<symbol> ) </symbol>
+<symbol> ; </symbol>
+</doStatement>
+<doStatement>
+<keyword> do </keyword>
+<identifier> v </identifier>
+<symbol> . </symbol>
+<identifier> dispose </identifier>
+<symbol> ( </symbol>
+<expressionList>
+</expressionList>
+<symbol> ) </symbol>
+<symbol> ; </symbol>
+</doStatement>
+<returnStatement>
+<keyword> return </keyword>
+<symbol> ; </symbol>
+</returnStatement>
+</statements>
+<symbol> } </symbol>
+</subroutineBody>
+</subroutineDec>
+<symbol> } </symbol>
+</class>

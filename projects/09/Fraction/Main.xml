@@ -1,0 +1,106 @@
+<class>
+<keyword> class </keyword>
+<identifier> Main </identifier>
+<symbol> { </symbol>
+<subroutineDec>
+<keyword> function </keyword>
+<keyword> void </keyword>
+<identifier> main </identifier>
+<symbol> ( </symbol>
+<parameterList>
+</parameterList>
+<symbol> ) </symbol>
+<subroutineBody>
+<symbol> { </symbol>
+<varDec>
+<keyword> var </keyword>
+<identifier> Fraction </identifier>
+<identifier> a </identifier>
+<symbol> , </symbol>
+<identifier> b </identifier>
+<symbol> , </symbol>
+<identifier> c </identifier>
+<symbol> ; </symbol>
+</varDec>
+<statements>
+<LetStatement>
+<keyword> let </keyword>
+<identifier> a </identifier>
+<symbol> = </symbol>
+<expression>
+<identifier> Fraction </identifier>
+<symbol> . </symbol>
+<identifier> new </identifier>
+<symbol> ( </symbol>
+<expressionList>
+<expression>
+<integerConstant> 2 </integerConstant>
+</expression>
+<expression>
+<integerConstant> 3 </integerConstant>
+</expression>
+</expressionList>
+<symbol> ) </symbol>
+</expression>
+<symbol> ; </symbol>
+</LetStatement>
+<LetStatement>
+<keyword> let </keyword>
+<identifier> b </identifier>
+<symbol> = </symbol>
+<expression>
+<identifier> Fraction </identifier>
+<symbol> . </symbol>
+<identifier> new </identifier>
+<symbol> ( </symbol>
+<expressionList>
+<expression>
+<integerConstant> 1 </integerConstant>
+</expression>
+<expression>
+<integerConstant> 5 </integerConstant>
+</expression>
+</expressionList>
+<symbol> ) </symbol>
+</expression>
+<symbol> ; </symbol>
+</LetStatement>
+<LetStatement>
+<keyword> let </keyword>
+<identifier> c </identifier>
+<symbol> = </symbol>
+<expression>
+<identifier> a </identifier>
+<symbol> . </symbol>
+<identifier> plus </identifier>
+<symbol> ( </symbol>
+<expressionList>
+<expression>
+<identifier> b </identifier>
+</expression>
+</expressionList>
+<symbol> ) </symbol>
+</expression>
+<symbol> ; </symbol>
+</LetStatement>
+<doStatement>
+<keyword> do </keyword>
+<identifier> c </identifier>
+<symbol> . </symbol>
+<identifier> print </identifier>
+<symbol> ( </symbol>
+<expressionList>
+</expressionList>
+<symbol> ) </symbol>
+<symbol> ; </symbol>
+</doStatement>
+<returnStatement>
+<keyword> return </keyword>
+<symbol> ; </symbol>
+</returnStatement>
+</statements>
+<symbol> } </symbol>
+</subroutineBody>
+</subroutineDec>
+<symbol> } </symbol>
+</class>

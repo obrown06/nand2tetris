@@ -1,0 +1,468 @@
+<class>
+<keyword> class </keyword>
+<identifier> Fraction </identifier>
+<symbol> { </symbol>
+<classVarDec>
+<keyword> field </keyword>
+<keyword> int </keyword>
+<identifier> numerator </identifier>
+<symbol> , </symbol>
+<identifier> denominator </identifier>
+<symbol> ; </symbol>
+</classVarDec>
+<subroutineDec>
+<keyword> constructor </keyword>
+<identifier> Fraction </identifier>
+<identifier> new </identifier>
+<symbol> ( </symbol>
+<parameterList>
+<keyword> int </keyword>
+<identifier> x </identifier>
+<symbol> , </symbol>
+<keyword> int </keyword>
+<identifier> y </identifier>
+</parameterList>
+<symbol> ) </symbol>
+<subroutineBody>
+<symbol> { </symbol>
+<statements>
+<LetStatement>
+<keyword> let </keyword>
+<identifier> numerator </identifier>
+<symbol> = </symbol>
+<expression>
+<identifier> x </identifier>
+</expression>
+<symbol> ; </symbol>
+</LetStatement>
+<LetStatement>
+<keyword> let </keyword>
+<identifier> denominator </identifier>
+<symbol> = </symbol>
+<expression>
+<identifier> y </identifier>
+</expression>
+<symbol> ; </symbol>
+</LetStatement>
+<doStatement>
+<keyword> do </keyword>
+<identifier> reduce </identifier>
+<symbol> ( </symbol>
+<expressionList>
+</expressionList>
+<symbol> ) </symbol>
+<symbol> ; </symbol>
+</doStatement>
+<returnStatement>
+<keyword> return </keyword>
+<expression>
+<keyword> this </keyword>
+</expression>
+<symbol> ; </symbol>
+</returnStatement>
+</statements>
+<symbol> } </symbol>
+</subroutineBody>
+</subroutineDec>
+<subroutineDec>
+<keyword> method </keyword>
+<keyword> void </keyword>
+<identifier> reduce </identifier>
+<symbol> ( </symbol>
+<parameterList>
+</parameterList>
+<symbol> ) </symbol>
+<subroutineBody>
+<symbol> { </symbol>
+<varDec>
+<keyword> var </keyword>
+<keyword> int </keyword>
+<identifier> g </identifier>
+<symbol> ; </symbol>
+</varDec>
+<statements>
+<LetStatement>
+<keyword> let </keyword>
+<identifier> g </identifier>
+<symbol> = </symbol>
+<expression>
+<identifier> Fraction </identifier>
+<symbol> . </symbol>
+<identifier> gcd </identifier>
+<symbol> ( </symbol>
+<expressionList>
+<expression>
+<identifier> numerator </identifier>
+</expression>
+<symbol> , </symbol>
+<expression>
+<identifier> denominator </identifier>
+</expression>
+</expressionList>
+<symbol> ) </symbol>
+</expression>
+<symbol> ; </symbol>
+</LetStatement>
+<ifStatement>
+<keyword> if </keyword>
+<symbol> ( </symbol>
+<expression>
+<identifier> g </identifier>
+<symbol> &gt; </symbol>
+<integerConstant> 1 </integerConstant>
+</expression>
+<symbol> ) </symbol>
+<symbol> { </symbol>
+<statements>
+<LetStatement>
+<keyword> let </keyword>
+<identifier> numerator </identifier>
+<symbol> = </symbol>
+<expression>
+<identifier> numerator </identifier>
+<symbol> / </symbol>
+<identifier> g </identifier>
+</expression>
+<symbol> ; </symbol>
+</LetStatement>
+<LetStatement>
+<keyword> let </keyword>
+<identifier> denominator </identifier>
+<symbol> = </symbol>
+<expression>
+<identifier> denominator </identifier>
+<symbol> / </symbol>
+<identifier> g </identifier>
+</expression>
+<symbol> ; </symbol>
+</LetStatement>
+</statements>
+<symbol> } </symbol>
+</ifStatement>
+<returnStatement>
+<keyword> return </keyword>
+<symbol> ; </symbol>
+</returnStatement>
+</statements>
+<symbol> } </symbol>
+</subroutineBody>
+</subroutineDec>
+<subroutineDec>
+<keyword> method </keyword>
+<keyword> int </keyword>
+<identifier> getNumerator </identifier>
+<symbol> ( </symbol>
+<parameterList>
+</parameterList>
+<symbol> ) </symbol>
+<subroutineBody>
+<symbol> { </symbol>
+<statements>
+<returnStatement>
+<keyword> return </keyword>
+<expression>
+<identifier> numerator </identifier>
+</expression>
+<symbol> ; </symbol>
+</returnStatement>
+</statements>
+<symbol> } </symbol>
+</subroutineBody>
+</subroutineDec>
+<subroutineDec>
+<keyword> method </keyword>
+<keyword> int </keyword>
+<identifier> getDenominator </identifier>
+<symbol> ( </symbol>
+<parameterList>
+</parameterList>
+<symbol> ) </symbol>
+<subroutineBody>
+<symbol> { </symbol>
+<statements>
+<returnStatement>
+<keyword> return </keyword>
+<expression>
+<identifier> denominator </identifier>
+</expression>
+<symbol> ; </symbol>
+</returnStatement>
+</statements>
+<symbol> } </symbol>
+</subroutineBody>
+</subroutineDec>
+<subroutineDec>
+<keyword> method </keyword>
+<identifier> Fraction </identifier>
+<identifier> plus </identifier>
+<symbol> ( </symbol>
+<parameterList>
+<identifier> Fraction </identifier>
+<identifier> other </identifier>
+</parameterList>
+<symbol> ) </symbol>
+<subroutineBody>
+<symbol> { </symbol>
+<varDec>
+<keyword> var </keyword>
+<keyword> int </keyword>
+<identifier> sum </identifier>
+<symbol> ; </symbol>
+</varDec>
+<statements>
+<LetStatement>
+<keyword> let </keyword>
+<identifier> sum </identifier>
+<symbol> = </symbol>
+<expression>
+<symbol> ( </symbol>
+<expression>
+<identifier> numerator </identifier>
+<symbol> * </symbol>
+<identifier> other </identifier>
+<symbol> . </symbol>
+<identifier> getDenominator </identifier>
+<symbol> ( </symbol>
+<expressionList>
+</expressionList>
+<symbol> ) </symbol>
+</expression>
+<symbol> ) </symbol>
+<symbol> + </symbol>
+<symbol> ( </symbol>
+<expression>
+<identifier> other </identifier>
+<symbol> . </symbol>
+<identifier> getNumerator </identifier>
+<symbol> ( </symbol>
+<expressionList>
+</expressionList>
+<symbol> ) </symbol>
+<symbol> * </symbol>
+<identifier> denominator </identifier>
+</expression>
+<symbol> ) </symbol>
+</expression>
+<symbol> ; </symbol>
+</LetStatement>
+<returnStatement>
+<keyword> return </keyword>
+<expression>
+<identifier> Fraction </identifier>
+<symbol> . </symbol>
+<identifier> new </identifier>
+<symbol> ( </symbol>
+<expressionList>
+<expression>
+<identifier> sum </identifier>
+</expression>
+<symbol> , </symbol>
+<expression>
+<identifier> denominator </identifier>
+<symbol> * </symbol>
+<identifier> other </identifier>
+<symbol> . </symbol>
+<identifier> getDenominator </identifier>
+<symbol> ( </symbol>
+<expressionList>
+</expressionList>
+<symbol> ) </symbol>
+</expression>
+</expressionList>
+<symbol> ) </symbol>
+</expression>
+<symbol> ; </symbol>
+</returnStatement>
+</statements>
+<symbol> } </symbol>
+</subroutineBody>
+</subroutineDec>
+<subroutineDec>
+<keyword> method </keyword>
+<keyword> void </keyword>
+<identifier> dispose </identifier>
+<symbol> ( </symbol>
+<parameterList>
+</parameterList>
+<symbol> ) </symbol>
+<subroutineBody>
+<symbol> { </symbol>
+<statements>
+<doStatement>
+<keyword> do </keyword>
+<identifier> Memory </identifier>
+<symbol> . </symbol>
+<identifier> deAlloc </identifier>
+<symbol> ( </symbol>
+<expressionList>
+<expression>
+<keyword> this </keyword>
+</expression>
+</expressionList>
+<symbol> ) </symbol>
+<symbol> ; </symbol>
+</doStatement>
+<returnStatement>
+<keyword> return </keyword>
+<symbol> ; </symbol>
+</returnStatement>
+</statements>
+<symbol> } </symbol>
+</subroutineBody>
+</subroutineDec>
+<subroutineDec>
+<keyword> method </keyword>
+<keyword> void </keyword>
+<identifier> print </identifier>
+<symbol> ( </symbol>
+<parameterList>
+</parameterList>
+<symbol> ) </symbol>
+<subroutineBody>
+<symbol> { </symbol>
+<statements>
+<doStatement>
+<keyword> do </keyword>
+<identifier> Output </identifier>
+<symbol> . </symbol>
+<identifier> printInt </identifier>
+<symbol> ( </symbol>
+<expressionList>
+<expression>
+<identifier> numerator </identifier>
+</expression>
+</expressionList>
+<symbol> ) </symbol>
+<symbol> ; </symbol>
+</doStatement>
+<doStatement>
+<keyword> do </keyword>
+<identifier> Output </identifier>
+<symbol> . </symbol>
+<identifier> printString </identifier>
+<symbol> ( </symbol>
+<expressionList>
+<expression>
+<stringConstant> / </stringConstant>
+</expression>
+</expressionList>
+<symbol> ) </symbol>
+<symbol> ; </symbol>
+</doStatement>
+<doStatement>
+<keyword> do </keyword>
+<identifier> Output </identifier>
+<symbol> . </symbol>
+<identifier> printInt </identifier>
+<symbol> ( </symbol>
+<expressionList>
+<expression>
+<identifier> denominator </identifier>
+</expression>
+</expressionList>
+<symbol> ) </symbol>
+<symbol> ; </symbol>
+</doStatement>
+<returnStatement>
+<keyword> return </keyword>
+<symbol> ; </symbol>
+</returnStatement>
+</statements>
+<symbol> } </symbol>
+</subroutineBody>
+</subroutineDec>
+<subroutineDec>
+<keyword> function </keyword>
+<keyword> int </keyword>
+<identifier> gcd </identifier>
+<symbol> ( </symbol>
+<parameterList>
+<keyword> int </keyword>
+<identifier> a </identifier>
+<symbol> , </symbol>
+<keyword> int </keyword>
+<identifier> b </identifier>
+</parameterList>
+<symbol> ) </symbol>
+<subroutineBody>
+<symbol> { </symbol>
+<varDec>
+<keyword> var </keyword>
+<keyword> int </keyword>
+<identifier> r </identifier>
+<symbol> ; </symbol>
+</varDec>
+<statements>
+<whileStatement>
+<keyword> while </keyword>
+<symbol> ( </symbol>
+<expression>
+<symbol> ~ </symbol>
+<symbol> ( </symbol>
+<expression>
+<identifier> b </identifier>
+<symbol> = </symbol>
+<integerConstant> 0 </integerConstant>
+</expression>
+<symbol> ) </symbol>
+</expression>
+<symbol> ) </symbol>
+<symbol> { </symbol>
+<statements>
+<LetStatement>
+<keyword> let </keyword>
+<identifier> r </identifier>
+<symbol> = </symbol>
+<expression>
+<identifier> a </identifier>
+<symbol> - </symbol>
+<symbol> ( </symbol>
+<expression>
+<identifier> b </identifier>
+<symbol> * </symbol>
+<symbol> ( </symbol>
+<expression>
+<identifier> a </identifier>
+<symbol> / </symbol>
+<identifier> b </identifier>
+</expression>
+<symbol> ) </symbol>
+</expression>
+<symbol> ) </symbol>
+</expression>
+<symbol> ; </symbol>
+</LetStatement>
+<LetStatement>
+<keyword> let </keyword>
+<identifier> a </identifier>
+<symbol> = </symbol>
+<expression>
+<identifier> b </identifier>
+</expression>
+<symbol> ; </symbol>
+</LetStatement>
+<LetStatement>
+<keyword> let </keyword>
+<identifier> b </identifier>
+<symbol> = </symbol>
+<expression>
+<identifier> r </identifier>
+</expression>
+<symbol> ; </symbol>
+</LetStatement>
+</statements>
+<symbol> } </symbol>
+</whileStatement>
+<returnStatement>
+<keyword> return </keyword>
+<expression>
+<identifier> a </identifier>
+</expression>
+<symbol> ; </symbol>
+</returnStatement>
+</statements>
+<symbol> } </symbol>
+</subroutineBody>
+</subroutineDec>
+<symbol> } </symbol>
+</class>
